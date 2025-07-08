@@ -5,41 +5,19 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const HTTP_STATUS = require("./constants/httpStatus");
 const prisma = require("./config/database");
+
 dotenv.config();
 app.use(cors());
+app.use(express.json()); // ⬅️ Important to parse JSON body
 
+// Get all users (no pagination now)
 router.get("/users/all", async (req, res) => {
     try {
         console.log(`${new Date().toISOString()} - All users request hit!`);
-        let { page, limit } = req.query;
 
-        if (!page && !limit) {
-            page = 1;
-            limit = 5;
-        }
-
-        if (page <= 0) {
-            return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).send({
-                success: false,
-                message: "Page value must be 1 or more",
-                data: null,
-            });
-        }
-
-        if (limit <= 0) {
-            return res.status(HTTP_STATUS.UNPROCESSABLE_ENTITY).send({
-                success: false,
-                message: "Limit value must be 1 or more",
-                data: null,
-            });
-        }
-
-        const users = await prisma.user.findMany({
-            skip: Number(page - 1) * Number(limit),
-            take: Number(limit),
-        });
-
+        const users = await prisma.user.findMany();
         const total = await prisma.user.count();
+
         return res.status(HTTP_STATUS.OK).send({
             success: true,
             message: "Successfully received all users",
@@ -49,7 +27,7 @@ router.get("/users/all", async (req, res) => {
             },
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
             success: false,
             message: "Internal server error",
@@ -57,9 +35,9 @@ router.get("/users/all", async (req, res) => {
     }
 });
 
-router.get(`/user/:id`, async (req, res) => {
+// Get single user by ID
+router.get("/user/:id", async (req, res) => {
     try {
-        console.log(`${new Date().toISOString()} - Single user request hit!`);
         const { id } = req.params;
 
         const result = await prisma.user.findFirst({ where: { id: Number(id) } });
@@ -77,10 +55,40 @@ router.get(`/user/:id`, async (req, res) => {
             data: null,
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
             success: false,
             message: "Internal server error",
+        });
+    }
+});
+
+// Add new user
+router.post("/users/add", async (req, res) => {
+    try {
+        const { first_name, last_name, email, gender, phone } = req.body;
+
+        const result = await prisma.user.create({
+            data: {
+                first_name,
+                last_name,
+                email,
+                gender,
+                phone,
+            },
+        });
+
+        return res.status(HTTP_STATUS.CREATED).send({
+            success: true,
+            message: "User added successfully",
+            data: result,
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({
+            success: false,
+            message: "Could not add user",
+            data: null,
         });
     }
 });
@@ -90,3 +98,4 @@ app.use("/", router);
 app.listen(process.env.PORT, () => {
     console.log(`Listening to port: ${process.env.PORT}`);
 });
+

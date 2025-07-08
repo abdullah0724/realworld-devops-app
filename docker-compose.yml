@@ -22,7 +22,7 @@ services:
             context: ./server
             dockerfile: Dockerfile
         ports:
-            - "7999:8000"
+            - "7999:5000"
         command: bash -c "npx prisma migrate reset --force && npm start"
         environment:
             DATABASE_URL: "${DATABASE_URL}"
@@ -35,6 +35,8 @@ services:
         build:
             context: ./client
             dockerfile: Dockerfile
+            args:
+              VITE_SERVER_URL: ${VITE_SERVER_URL}
         command: bash -c "npm run preview"
         ports:
             - "4172:4173"
