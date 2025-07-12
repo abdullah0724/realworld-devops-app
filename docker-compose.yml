@@ -1,52 +1,52 @@
-<<<<<<< HEAD
-services:
-    postgres:
-        container_name: database
-        ports:
-            - "5431:5432"
-        image: postgres
-        environment:
-            POSTGRES_USER: "${POSTGRES_USER}"
-            POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
-            POSTGRES_DB: ${POSTGRES_DB}
-        volumes:
-            - ./docker_test_db:/var/lib/postgresql/data
-        healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
-            interval: 5s
-            timeout: 60s
-            retries: 5
-            start_period: 80s
-    server:
-        container_name: server
-        build:
-            context: ./server
-            dockerfile: Dockerfile
-        ports:
-            - "7999:5000"
-        command: bash -c "npx prisma migrate reset --force && npm start"
-        environment:
-            DATABASE_URL: "${DATABASE_URL}"
-            PORT: "${SERVER_PORT}"
-        depends_on:
-            postgres:
-                condition: service_healthy
-    client:
-        container_name: client
-        build:
-            context: ./client
-            dockerfile: Dockerfile
-            args:
-              VITE_SERVER_URL: ${VITE_SERVER_URL}
-        command: bash -c "npm run preview"
-        ports:
-            - "4172:4173"
-        depends_on:
-            - server
-=======
-version: '3'
+version: '3.8'
 
 services:
+  postgres:
+    container_name: database
+    ports:
+      - "5431:5432"
+    image: postgres
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ./docker_test_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}'"]
+      interval: 5s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+
+  server:
+    container_name: server
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "7999:5000"
+    command: bash -c "npx prisma migrate reset --force && npm start"
+    environment:
+      DATABASE_URL: "${DATABASE_URL}"
+      PORT: "${SERVER_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  client2:
+    container_name: client2
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_SERVER_URL: ${VITE_SERVER_URL}
+    command: bash -c "npm run preview"
+    ports:
+      - "4172:4173"
+    depends_on:
+      - server
+
   client-service:
     container_name: "client"
     build:
@@ -54,8 +54,6 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL}
-    # ports:
-    #   - ${CLIENT_APP_EXTERNAL_PORT}:${CLIENT_APP_INTERNAL_PORT}
     networks:
       - mynetwork
     depends_on:
@@ -79,8 +77,6 @@ services:
       - MYSQL_USERNAME=${MYSQL_USERNAME}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_TABLE=${MYSQL_TABLE}
-    # ports:
-    #   - ${API_SERVER_EXTERNAL_PORT}:${API_SERVER_INTERNAL_PORT}
     networks:
       - mynetwork
     depends_on:
@@ -105,8 +101,6 @@ services:
       - MYSQL_USERNAME=${MYSQL_USERNAME}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_TABLE=${MYSQL_TABLE}
-    # ports:
-    #   - ${API_SERVER_EXTERNAL_PORT}:${API_SERVER_INTERNAL_PORT}
     networks:
       - mynetwork
     depends_on:
@@ -139,8 +133,6 @@ services:
     build: ./db/.
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    # ports:
-    #   - '3306:3306'
     networks:
       - mynetwork
 
@@ -149,8 +141,6 @@ services:
     image: "redis:latest"
     restart: always
     command: redis-server --save 20 1 --loglevel warning --requirepass mypassword
-    # ports:
-    #   - '6379:6379'
     networks:
       - mynetwork
 
@@ -174,4 +164,4 @@ services:
 networks:
   mynetwork:
     driver: bridge
->>>>>>> ae9cb74d7c82c84d48db87c255853433915edf0a
+
