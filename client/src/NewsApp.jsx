@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Form } from "./Form";
-import { getNews, createNews } from "../lib/api";
+import { fetchNews } from "@lib/api";
 import { News } from "./News";
 
 const NewsApp = () => {
